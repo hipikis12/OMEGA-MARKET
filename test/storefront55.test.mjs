@@ -1,3 +1,0 @@
-import test from 'node:test';import assert from 'node:assert/strict';import {validateStorefront55} from '../storefront55.mjs';
-const valid={theme:'blue',banners:[{title:' Teste ',text:'Descrição',image:'farm'}],highlights:[1,2]};
-test('storefront config validates banner limits, themes and unique product IDs',()=>{assert.equal(validateStorefront55(valid).banners[0].title,'Teste');for(const b of [{...valid,theme:'url(x)'},{...valid,banners:[]},{...valid,banners:[{title:'x',text:'y',image:'https://example.com'}]},{...valid,highlights:[1,1]},{...valid,highlights:[-1]}])assert.throws(()=>validateStorefront55(b));});

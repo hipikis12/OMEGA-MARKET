@@ -1,0 +1,22 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env: { POSTGRES_PASSWORD: postgres, POSTGRES_DB: omega }
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm test
+      - name: Testes SQL (migração + regras de negócio + RLS)
+        env: { PGPASSWORD: postgres }
+        run: |
+          for f in test/sql/supabase-stubs.sql supabase/migrations/0001_init.sql supabase/seed.sql test/sql/grants.sql test/sql/business.sql; do
+            psql -h localhost -U postgres -d omega -v ON_ERROR_STOP=1 -q -f "$f"
+          done

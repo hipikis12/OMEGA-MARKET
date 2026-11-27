@@ -1,0 +1,9 @@
+# Cloudflare Pages — OMEGA MARKET 6
+# Segredos NÃO ficam aqui: cadastre-os em
+# Pages > omega-market > Settings > Variables and Secrets (veja .dev.vars.example)
+name = "omega-market"
+pages_build_output_dir = "public"
+compatibility_date = "2026-11-01"
+
+[vars]
+MP_STATEMENT_DESCRIPTOR = "OMEGAMARKET"
