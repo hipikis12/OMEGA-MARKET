@@ -1,0 +1,15 @@
+{
+  "name": "omega-market",
+  "version": "5.8.0-rc.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch server.mjs",
+    "start": "node server.mjs",
+    "test": "node --test",
+    "backup": "node backup37.mjs"
+  },
+  "engines": {
+    "node": ">=22.13"
+  }
+}

@@ -1,0 +1,4 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {filter52,suggest52} from '../public/catalog52.mjs';
+const products=[{id:1,title:'Árvore 3D',category:'Assets',sellerName:'Estúdio',description:'Fazenda verde'},{id:2,title:'Template',category:'UI',sellerName:'Outro',description:'Árvore decorativa'}];
+test('pesquisa ignora acentos, combina palavras e respeita categoria',()=>{assert.deepEqual(filter52(products,'arvore estudio').map(p=>p.id),[1]);assert.deepEqual(filter52(products,'arvore','UI').map(p=>p.id),[2]);assert.equal(filter52(products,'inexistente').length,0)});
+test('sugestões priorizam títulos e limitam resultados',()=>{assert.deepEqual(suggest52(products,'arvore').map(p=>p.id),[1,2]);assert.deepEqual(suggest52(products,'a'),[]);assert.equal(suggest52(Array.from({length:20},(_,id)=>({...products[0],id})),'arvore').length,6)});

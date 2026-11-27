@@ -1,0 +1,3 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {DatabaseSync} from 'node:sqlite';import {persistentGuard,sessionDigest} from '../security35.mjs';
+test('Bloqueio persiste entre instâncias e expira',()=>{const db=new DatabaseSync(':memory:');let t=1000;const opts={now:()=>t,limit:2,windowMs:100};const a=persistentGuard(db,opts);a.fail('test');a.fail('test');const b=persistentGuard(db,opts);assert.throws(()=>b.check('test'),{status:429});t+=101;assert.doesNotThrow(()=>b.check('test'));db.close()});
+test('Digest de sessão determinístico e distinto do token',()=>{assert.equal(sessionDigest('sample').length,64);assert.equal(sessionDigest('sample'),sessionDigest('sample'));assert.notEqual(sessionDigest('sample'),sessionDigest('other'))});

@@ -1,0 +1,2 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {seal,unseal} from '../backup47.mjs';
+test('backup authenticated encryption: roundtrip, wrong key and tampering',()=>{const data=Buffer.from('fake backup'),key='a1'.repeat(32);const sealed=seal(data,key);assert.deepEqual(unseal(sealed,key),data);assert.notDeepEqual(sealed,seal(data,key));assert.throws(()=>unseal(sealed,'b2'.repeat(32)));sealed[sealed.length-1]^=1;assert.throws(()=>unseal(sealed,key));assert.throws(()=>seal(data,''))});

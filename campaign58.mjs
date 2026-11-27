@@ -1,0 +1,11 @@
+const err=(message,status=400)=>{throw Object.assign(new Error(message),{status})};
+export function campaign58(db,clock=Date.now){
+ db.exec(`CREATE TABLE IF NOT EXISTS campaigns58(id INTEGER PRIMARY KEY, title TEXT NOT NULL, message TEXT NOT NULL, audience TEXT NOT NULL, starts INTEGER NOT NULL, ends INTEGER NOT NULL, enabled INTEGER NOT NULL DEFAULT 1); CREATE TABLE IF NOT EXISTS campaign_reads58(campaign INTEGER REFERENCES campaigns58(id), uid INTEGER REFERENCES users(id), PRIMARY KEY(campaign,uid));`);
+ const all=(s,...a)=>db.prepare(s).all(...a), run=(s,...a)=>db.prepare(s).run(...a);
+ function list(){const now=clock();return all('SELECT * FROM campaigns58 ORDER BY id DESC LIMIT 100').map(c=>({...c,status:!c.enabled?'inactive':now<c.starts?'scheduled':now>=c.ends?'expired':'active'}))}
+ function create(b){const title=typeof b.title==='string'?b.title.trim():'',message=typeof b.message==='string'?b.message.trim():'';if(!title||title.length>100||!message||message.length>500||!['all','customer','partner'].includes(b.audience)||!Number.isSafeInteger(b.starts)||!Number.isSafeInteger(b.ends)||b.starts<0||b.ends<=b.starts||b.ends-b.starts>366*86400000)err('Campanha inválida');if(all('SELECT count(*) n FROM campaigns58')[0].n>=1000)err('Limite de campanhas atingido',409);return {id:Number(run('INSERT INTO campaigns58(title,message,audience,starts,ends) VALUES(?,?,?,?,?)',title,message,b.audience,b.starts,b.ends).lastInsertRowid)}}
+ function visible(u){const now=clock();return all(`SELECT c.id,c.title,c.message,c.ends, CASE WHEN r.uid IS NULL THEN 0 ELSE 1 END AS read FROM campaigns58 c LEFT JOIN campaign_reads58 r ON r.campaign=c.id AND r.uid=? WHERE c.enabled=1 AND c.starts<=? AND c.ends>? AND (c.audience='all' OR c.audience=?) ORDER BY c.id DESC LIMIT 100`,u.id,now,now,u.role)}
+ function read(u,id){if(!Number.isSafeInteger(id)||!visible(u).some(c=>c.id===id))err('Aviso indisponível',404);run('INSERT OR IGNORE INTO campaign_reads58 VALUES(?,?)',id,u.id);return {ok:true}}
+ function stop(id){if(!Number.isSafeInteger(id)||!run('UPDATE campaigns58 SET enabled=0 WHERE id=?',id).changes)err('Campanha não encontrada',404);return {ok:true}}
+ return {list,create,visible,read,stop};
+}
