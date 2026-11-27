@@ -1,7 +1,7 @@
 // Painel administrativo (carregado sob demanda só para administradores).
 import { api, uploadTo, esc, money, date, bytes } from './api.js';
 
-const TABS = [['painel', 'Painel'], ['produtos', 'Produtos'], ['pedidos', 'Pedidos'], ['cupons', 'Cupons'], ['loja', 'Loja']];
+const TABS = [['painel', 'Resumo'], ['produtos', 'Produtos'], ['pedidos', 'Pedidos'], ['cupons', 'Cupons'], ['loja', 'Ajustes']];
 
 export async function renderAdmin(main, tab, ctx) {
   main.innerHTML = `<section class="wrap section admin"><div class="admin-head"><h1>Administração</h1>
@@ -17,13 +17,10 @@ async function dashboard(el, ctx) {
   el.innerHTML = `<div class="kpis">
     <div class="kpi"><span>Receita (30 dias)</span><b>${money(s.revenue_cents)}</b></div>
     <div class="kpi"><span>Pedidos pagos</span><b>${s.paid_orders}</b></div>
-    <div class="kpi"><span>Aguardando pagamento</span><b>${s.pending_orders}</b></div>
-    <div class="kpi"><span>Reembolsos/contestações</span><b>${s.refunded_orders}</b></div>
-    <div class="kpi"><span>Produtos publicados</span><b>${s.products_published} / ${s.products_total}</b></div></div>
-    <div class="panel"><h2 class="h3">Checklist de produção</h2><ul class="checks">
-      <li>${ctx.state.config.payments ? '✅' : '⚠️'} Mercado Pago configurado ${ctx.state.config.sandbox ? '(modo TESTE)' : ''}</li>
-      <li>${ctx.state.config.turnstileSiteKey ? '✅' : '⚠️'} Turnstile anti-robô ativo</li>
-      <li>📘 Webhook: <code>/api/webhooks/mercadopago</code> cadastrado no painel do Mercado Pago</li></ul></div>`;
+    <div class="kpi"><span>Pendentes</span><b>${s.pending_orders}</b></div>
+    <div class="kpi"><span>Reembolsos</span><b>${s.refunded_orders}</b></div>
+    <div class="kpi"><span>Produtos ativos</span><b>${s.products_published} / ${s.products_total}</b></div></div>
+    ${ctx.state.config.payments ? '' : '<p class="notice">Pagamentos desativados: defina MP_ACCESS_TOKEN no Cloudflare Pages.</p>'}`;
 }
 
 // ---------------------------------------------------------------- produtos
@@ -128,11 +125,11 @@ function editor(el, ctx, p) {
 // ----------------------------------------------------------------- pedidos
 async function orders(el, ctx, status = '') {
   const { orders: list } = await api('admin/orders' + (status ? '?status=' + status : ''));
-  el.innerHTML = `<div class="toolbar"><select id="st"><option value="">Todos os status</option>${['pending', 'paid', 'rejected', 'cancelled', 'refunded', 'charged_back'].map((s) => `<option value="${s}"${s === status ? ' selected' : ''}>${s}</option>`).join('')}</select><span class="muted">${list.length} pedido(s)</span></div>
+  el.innerHTML = `<div class="toolbar"><select id="st"><option value="">Todos</option>${[['paid', 'Pagos'], ['pending', 'Pendentes'], ['rejected', 'Recusados'], ['cancelled', 'Cancelados'], ['refunded', 'Reembolsados'], ['charged_back', 'Contestados']].map(([s, l]) => `<option value="${s}"${s === status ? ' selected' : ''}>${l}</option>`).join('')}</select><span class="muted">${list.length} pedido(s)</span></div>
     <div class="table">${list.map((o) => `<div class="row"><span><b>#${esc(o.id.slice(0, 8).toUpperCase())}</b><small class="muted">${date(o.created_at)}</small></span>
       <span class="grow">${esc(o.order_items.map((i) => i.title).join(', '))}<small class="muted">${o.mp_payment_id ? 'MP ' + esc(o.mp_payment_id) + ' · ' + esc(o.mp_status || '') : 'sem pagamento'}${o.coupon_code ? ' · cupom ' + esc(o.coupon_code) : ''}</small></span>
       ${ctx.statusPill(o.status)}<b>${money(o.total_cents)}</b></div>`).join('') || '<p class="muted">Nenhum pedido.</p>'}</div>
-    <p class="muted small">Reembolsos são feitos no painel do Mercado Pago; o webhook atualiza o pedido e bloqueia os downloads automaticamente.</p>`;
+    <p class="muted small">Reembolsos são feitos no Mercado Pago e atualizados aqui automaticamente.</p>`;
   el.querySelector('#st').onchange = (e) => orders(el, ctx, e.target.value);
 }
 

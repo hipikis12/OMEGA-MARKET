@@ -1,6 +1,14 @@
 -- Testes das regras de negócio do banco. Rode num Postgres local com stubs
 -- do Supabase: stubs → migração → seed → grants → este arquivo (ver CI).
 \set QUIET on
+insert into products(slug, title, category, price_cents, compare_cents, delivery, status, featured) values
+  ('kit-ui-aurora', 'Kit UI Aurora', 'templates', 9790, 14900, 'download', 'published', true),
+  ('curso-flutter-pro', 'Curso Flutter Pro', 'cursos', 19700, null, 'download', 'published', true),
+  ('omega-backup-pro', 'Omega Backup Pro', 'software', 7990, null, 'license', 'published', false),
+  ('pack-lofi-beats', 'Pack Lo-Fi Beats', 'audio', 4990, null, 'download', 'published', false);
+insert into license_keys(product_id, code)
+  select id, 'OMEGA-' || g from products, generate_series(1, 5) g where slug = 'omega-backup-pro';
+insert into coupons(code, percent, expires_at, max_uses) values ('BEMVINDO10', 10, now() + interval '30 days', 100);
 do $$
 declare
   u uuid; o orders; o2 orders; pid_ui uuid; pid_lic uuid; total int; lic text; ok boolean;

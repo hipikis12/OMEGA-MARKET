@@ -7,8 +7,7 @@
   "scripts": {
     "dev": "wrangler pages dev",
     "deploy": "wrangler pages deploy",
-    "test": "node --test \"test/**/*.test.mjs\"",
-    "preview": "node scripts/preview.mjs"
+    "test": "node --test \"test/**/*.test.mjs\""
   },
   "engines": {
     "node": ">=20"

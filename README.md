@@ -16,16 +16,15 @@ public/                 site estático (index.html, assets/, _headers)
 functions/api/          rotas /api/* (Cloudflare Pages Functions)
 lib/                    código compartilhado (Supabase, Mercado Pago, auth, validação)
 supabase/migrations/    schema, RLS, funções SQL e buckets
-supabase/seed.sql       categorias e produtos de demonstração (opcional)
-test/                   testes Node (npm test) e SQL (test/sql)
-scripts/preview.mjs     pré-visualização do visual com dados fictícios
+supabase/seed.sql       categorias iniciais (opcional)
+test/                   verificações automáticas (rodam no GitHub Actions)
 ```
 
 ## Passo a passo para colocar no ar
 
 ### 1. Supabase
 1. Crie um projeto em https://supabase.com (região **South America (São Paulo)**).
-2. Em **SQL Editor**, rode `supabase/migrations/0001_init.sql`. Se quiser os produtos de exemplo, rode também `supabase/seed.sql`.
+2. Em **SQL Editor**, rode `supabase/migrations/0001_init.sql`. Para já começar com categorias prontas, rode também `supabase/seed.sql`.
 3. Em **Authentication › Sign In / Providers › Email**, deixe **Confirm email** ligado.
 4. Em **Authentication › URL Configuration**:
    - Site URL: `https://SEU-DOMINIO`
@@ -47,7 +46,7 @@ scripts/preview.mjs     pré-visualização do visual com dados fictícios
 | `SUPABASE_URL` | `https://xxxx.supabase.co` |
 | `SUPABASE_PUBLISHABLE_KEY` | publishable (ou anon) key |
 | `SUPABASE_SECRET_KEY` | secret (ou service_role) key |
-| `MP_ACCESS_TOKEN` | `TEST-...` para testar e `APP_USR-...` para vender de verdade |
+| `MP_ACCESS_TOKEN` | Access Token de produção (`APP_USR-...`) |
 | `MP_WEBHOOK_SECRET` | assinatura secreta do webhook (passo 3) |
 | `TURNSTILE_SITE_KEY` / `TURNSTILE_SECRET_KEY` | passo 4 |
 
@@ -55,13 +54,12 @@ scripts/preview.mjs     pré-visualização do visual com dados fictícios
 
 ### 3. Mercado Pago
 1. Em https://www.mercadopago.com.br/developers › **Suas integrações**, crie uma aplicação do tipo **Checkout Pro**.
-2. Copie o **Access Token** (de teste ou de produção) para `MP_ACCESS_TOKEN`.
+2. Em **Credenciais de produção**, copie o **Access Token** para `MP_ACCESS_TOKEN`.
 3. Em **Webhooks**, configure:
    - URL de produção: `https://SEU-DOMINIO/api/webhooks/mercadopago`
    - Evento: **Pagamentos**
    - Copie a **assinatura secreta** para `MP_WEBHOOK_SECRET`.
-4. Para testar, crie **contas de teste** (vendedor e comprador) no painel e use os cartões de teste do Mercado Pago.
-5. Os reembolsos são feitos no painel do Mercado Pago. O webhook marca o pedido como reembolsado e bloqueia os downloads sozinho.
+4. Os reembolsos são feitos no painel do Mercado Pago. O webhook marca o pedido como reembolsado e bloqueia os downloads sozinho.
 
 ### 4. Segurança da Cloudflare (recomendado)
 No painel do domínio:
@@ -86,20 +84,17 @@ No painel do domínio:
 3. Entre de novo. O menu **Admin** aparece no topo.
 
 ### 6. Antes de abrir a loja
-- [ ] Fazer uma compra completa com `TEST-` e conta de comprador de teste. Conferir se o pedido fica **Pago** e se o arquivo baixa na biblioteca.
-- [ ] Fazer um reembolso de teste. O pedido deve virar **Reembolsado** e o download deve ser bloqueado.
-- [ ] Trocar `MP_ACCESS_TOKEN` para `APP_USR-...` e fazer um redeploy.
-- [ ] Arquivar ou excluir os produtos de demonstração do seed.
+- [ ] Cadastrar um produto barato (R$ 1,00), comprar com Pix e conferir se o pedido fica **Pago** e se o arquivo baixa na biblioteca.
+- [ ] Reembolsar essa compra no Mercado Pago e conferir se o pedido vira **Reembolsado** e o download é bloqueado.
+- [ ] Arquivar o produto de R$ 1,00.
 - [ ] Publicar termos de uso, política de privacidade (LGPD) e política de reembolso. O CDC dá 7 dias de arrependimento em compras online.
 
 ## Desenvolvimento local
 ```bash
-npm test                         # testes Node
-npm run preview                  # só o visual, com dados fictícios → http://127.0.0.1:8790
-cp .dev.vars.example .dev.vars   # preencha com chaves de teste
-npx wrangler pages dev           # fluxo real → http://localhost:8788
+cp .dev.vars.example .dev.vars   # preencha com as suas chaves
+npx wrangler pages dev           # http://localhost:8788
+npm test                         # verificações automáticas
 ```
-Os testes SQL rodam no GitHub Actions (`.github/workflows/ci.yml`) contra um PostgreSQL 16.
 
 ## Como o pagamento funciona
 1. O cliente clica em **Pagar** e `/api/checkout` chama `create_order` no banco. Preço, cupom e total são calculados lá, numa transação, com chave de idempotência.

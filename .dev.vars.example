@@ -10,8 +10,8 @@ SUPABASE_PUBLISHABLE_KEY=sb_publishable_xxx   # ou a "anon key" legada
 SUPABASE_SECRET_KEY=sb_secret_xxx             # ou a "service_role key" legada — NUNCA no frontend
 
 # Mercado Pago > Suas integrações > Credenciais
-# Teste: TEST-xxxx   Produção: APP_USR-xxxx
-MP_ACCESS_TOKEN=TEST-xxxx
+# Access Token de produção
+MP_ACCESS_TOKEN=APP_USR-xxxx
 # Mercado Pago > Suas integrações > Webhooks > Assinatura secreta
 MP_WEBHOOK_SECRET=xxxx
 

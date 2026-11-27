@@ -55,7 +55,7 @@ function card(p) {
       <h3><a href="#/produto/${esc(p.slug)}">${esc(p.title)}</a></h3>
       <p class="muted small clamp">${esc(p.subtitle)}</p>
       <div class="card-foot">${price(p)}${stars(p.rating_avg, p.rating_count)}</div>
-      <button class="btn btn-block" data-add="${esc(p.id)}">${cart.has(p.id) ? 'No carrinho ✓' : 'Adicionar ao carrinho'}</button>
+      <button class="btn btn-block" data-add="${esc(p.id)}">${cart.has(p.id) ? 'No carrinho ✓' : 'Adicionar'}</button>
     </div>
   </article>`;
 }
@@ -113,11 +113,9 @@ function renderNav() {
   const u = state.user;
   $('#nav').innerHTML = `
     <a href="#/produtos">Produtos</a>
-    ${u ? '<a href="#/biblioteca">Biblioteca</a>' : ''}
-    ${u && u.role === 'admin' ? '<a href="#/admin">Admin</a>' : ''}
     <a class="cart-link" href="#/carrinho" aria-label="Carrinho com ${count} itens">🛒<span class="cart-count${count ? '' : ' zero'}">${count}</span></a>
-    ${u ? `<details class="account"><summary>${esc((u.name || u.email).split(' ')[0])}</summary><div class="menu">
-          <a href="#/pedidos">Meus pedidos</a><a href="#/biblioteca">Biblioteca</a><button id="logout" class="link">Sair</button></div></details>`
+    ${u ? `<details class="account"><summary>${esc((u.name || u.email).split(' ')[0])} ▾</summary><div class="menu">
+          <a href="#/biblioteca">Biblioteca</a><a href="#/pedidos">Pedidos</a>${u.role === 'admin' ? '<a href="#/admin">Administração</a>' : ''}<button id="logout" class="link">Sair</button></div></details>`
         : '<a class="btn btn-sm" href="#/entrar">Entrar</a>'}`;
   const out = $('#logout');
   if (out) out.onclick = async () => { await api('auth/logout', { method: 'POST' }).catch(() => {}); state.user = null; renderNav(); location.hash = '#/'; toast('Você saiu da conta', 'info'); };
@@ -186,8 +184,9 @@ async function home() {
     </section>`;
   const [feat, latest] = await Promise.all([api('products?featured=1&limit=4'), api('products?sort=novos&limit=8')]);
   const all = [...feat.products, ...latest.products];
-  $('#featured').innerHTML = feat.products.length ? `<div class="grid">${feat.products.map(card).join('')}</div>` : '<p class="muted">Marque produtos como destaque no painel.</p>';
-  $('#latest').innerHTML = latest.products.length ? `<div class="grid">${latest.products.map(card).join('')}</div>` : emptyState('Catálogo vazio', 'Cadastre os primeiros produtos no painel administrativo.');
+  if (!feat.products.length) $('#featured').closest('section').remove();
+  else $('#featured').innerHTML = feat.products.length ? `<div class="grid">${feat.products.map(card).join('')}</div>` : '';
+  $('#latest').innerHTML = latest.products.length ? `<div class="grid">${latest.products.map(card).join('')}</div>` : emptyState('Novidades em breve', 'Estamos preparando os primeiros produtos.');
   bindAddButtons(all);
 }
 
@@ -263,7 +262,6 @@ async function cartView() {
       <form id="coupon-form" class="inline"><input name="coupon" placeholder="Cupom de desconto" value="${esc(q.coupon ? q.coupon.code : '')}" maxlength="30" aria-label="Cupom"><button class="btn btn-ghost btn-sm">Aplicar</button></form>
       <dl><dt>Subtotal</dt><dd>${money(q.subtotal_cents)}</dd>${q.discount_cents ? `<dt>Desconto ${esc(q.coupon.code)} (${q.coupon.percent}%)</dt><dd class="ok">− ${money(q.discount_cents)}</dd>` : ''}<dt class="total">Total</dt><dd class="total">${money(q.total_cents)}</dd></dl>
       ${state.config.payments ? `<button class="btn btn-lg btn-block" id="pay">${state.user ? 'Pagar com Mercado Pago' : 'Entrar e pagar'}</button>` : '<p class="notice">Pagamentos ainda não configurados nesta loja.</p>'}
-      ${state.config.sandbox ? '<p class="notice small">Modo de teste: use cartões de teste do Mercado Pago.</p>' : ''}
       <p class="muted small center">🔒 Você será levado ao ambiente seguro do Mercado Pago.</p>`;
     main.querySelectorAll('[data-remove]').forEach((b) => { b.onclick = () => { cart.remove(b.dataset.remove); checkoutKey = null; refresh(); }; });
     $('#coupon-form').onsubmit = (e) => { e.preventDefault(); coupon = formData(e.target).coupon.trim(); sessionStorage.setItem('omega-coupon', coupon); checkoutKey = null; refresh(); };
@@ -447,7 +445,7 @@ document.addEventListener('click', (e) => { const d = document.querySelector('de
     main.innerHTML = `<section class="wrap section">${emptyState('Loja indisponível', e.message)}</section>`; return;
   }
   if (!state.config.configured) {
-    main.innerHTML = `<section class="wrap section">${emptyState('Configuração pendente', 'Defina SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY e SUPABASE_SECRET_KEY nas variáveis do Cloudflare Pages. Veja o README.')}</section>`; return;
+    main.innerHTML = `<section class="wrap section">${emptyState('Loja em manutenção', 'Voltamos em instantes.')}</section>`; return;
   }
   route();
 })();

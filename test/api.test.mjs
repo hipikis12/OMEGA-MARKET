@@ -48,7 +48,7 @@ test('checkout cria pedido no banco e preferência no Mercado Pago', async () =>
   ]);
   const r = await run(checkout.onRequestPost, { method: 'POST', body: { ids: [PROD], coupon: '', key: ORDER }, headers: SESSION });
   assert.equal(r.status, 200, JSON.stringify(r.json));
-  assert.match(r.json.url, /^https:\/\/sandbox\.mercadopago\.com\.br\//);
+  assert.match(r.json.url, /^https:\/\/www\.mercadopago\.com\.br\//);
   const rpc = calls.find((c) => c.url.endsWith('/rpc/create_order'));
   assert.deepEqual(rpc.body, { p_user: USER, p_product_ids: [PROD], p_coupon: '', p_key: ORDER });
   const pref = calls.find((c) => c.url.includes('/checkout/preferences'));

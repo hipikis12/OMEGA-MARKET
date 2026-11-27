@@ -30,6 +30,5 @@ export async function onRequestGet(context) {
     user: publicUser(session),
     turnstileSiteKey: env.TURNSTILE_SITE_KEY || null,
     payments: Boolean(env.MP_ACCESS_TOKEN),
-    sandbox: String(env.MP_ACCESS_TOKEN || '').startsWith('TEST-'),
   });
 }

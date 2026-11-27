@@ -30,7 +30,7 @@ export async function onRequestPost(context) {
     statementDescriptor: env.MP_STATEMENT_DESCRIPTOR || 'OMEGAMARKET',
   });
   const created = await mp.createPreference(pref, order.id);
-  const url = mp.isSandbox ? created.sandbox_init_point || created.init_point : created.init_point;
+  const url = created.init_point;
   if (!url || !/^https:\/\/([a-z0-9-]+\.)*mercadopago\.com(\.br)?\//.test(url)) {
     throw new HttpError(502, 'Resposta inesperada do Mercado Pago');
   }
