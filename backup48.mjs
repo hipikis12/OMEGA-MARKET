@@ -1,7 +1,0 @@
-import {readdir,lstat,readFile,writeFile} from 'node:fs/promises';
-import {join,resolve} from 'node:path';
-import {sha256File} from './security37.mjs';
-import {pathToFileURL} from 'node:url';
-export async function inventory(root){const files=[];async function walk(dir,prefix=''){for(const name of (await readdir(dir)).sort()){const relative=prefix+name;if(relative==='manifest48.json')continue;const path=join(dir,name),s=await lstat(path);if(s.isSymbolicLink())throw Error('Link simbólico não permitido');if(s.isDirectory())await walk(path,relative+'/');else if(s.isFile())files.push({path:relative,size:s.size,sha256:await sha256File(path)});else throw Error('Tipo de arquivo não permitido');}}await walk(root);return files.sort((a,b)=>a.path.localeCompare(b.path,'en'));}
-export async function verifyInventory(root){const expected=JSON.parse(await readFile(join(root,'manifest48.json'),'utf8'));const actual=await inventory(root);return JSON.stringify(expected.files)===JSON.stringify(actual);}
-if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){const [action,dir]=process.argv.slice(2);if(!dir||!['create','verify'].includes(action))throw Error('Uso: node backup48.mjs create|verify PASTA');if(action==='create'){await writeFile(join(dir,'manifest48.json'),JSON.stringify({files:await inventory(dir)},null,2),{flag:'wx',mode:0o600});console.log('Inventário criado');}else{const ok=await verifyInventory(dir);console.log(ok?'Integridade confirmada':'Divergência detectada');if(!ok)process.exitCode=1;}}

@@ -1,2 +1,0 @@
-import {test} from 'node:test';import assert from 'node:assert/strict';import {runScenario} from '../security34.mjs';
-test('Eventos locais válidos e inválidos nunca liberam produtos',()=>{for(const [scenario,result] of Object.entries({valid:'validated',duplicate:'duplicate',expired:'expired',amount:'inconsistent',reference:'inconsistent',currency:'inconsistent',status:'inconsistent',tampered:'signature_invalid'})){assert.deepEqual(runScenario(scenario),{scenario,result,mode:'offline',release:false})}});

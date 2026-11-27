@@ -1,15 +1,19 @@
 {
   "name": "omega-market",
-  "version": "5.8.0-rc.1",
+  "version": "6.0.0",
   "private": true,
   "type": "module",
+  "description": "Loja de produtos digitais — Cloudflare Pages + Supabase + Mercado Pago",
   "scripts": {
-    "dev": "node --watch server.mjs",
-    "start": "node server.mjs",
-    "test": "node --test",
-    "backup": "node backup37.mjs"
+    "dev": "wrangler pages dev",
+    "deploy": "wrangler pages deploy",
+    "test": "node --test \"test/**/*.test.mjs\"",
+    "preview": "node scripts/preview.mjs"
   },
   "engines": {
-    "node": ">=22.13"
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
   }
 }

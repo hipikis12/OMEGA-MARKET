@@ -1,0 +1,20 @@
+# Copie para .dev.vars (desenvolvimento local com `npx wrangler pages dev`).
+# Em produção cadastre como "Secret" no painel do Cloudflare Pages.
+
+# URL pública do site (sem barra no final). Usada no retorno do Mercado Pago.
+SITE_URL=http://localhost:8788
+
+# Supabase > Project Settings > API Keys
+SUPABASE_URL=https://SEU-PROJETO.supabase.co
+SUPABASE_PUBLISHABLE_KEY=sb_publishable_xxx   # ou a "anon key" legada
+SUPABASE_SECRET_KEY=sb_secret_xxx             # ou a "service_role key" legada — NUNCA no frontend
+
+# Mercado Pago > Suas integrações > Credenciais
+# Teste: TEST-xxxx   Produção: APP_USR-xxxx
+MP_ACCESS_TOKEN=TEST-xxxx
+# Mercado Pago > Suas integrações > Webhooks > Assinatura secreta
+MP_WEBHOOK_SECRET=xxxx
+
+# Cloudflare Turnstile (opcional, recomendado em produção)
+TURNSTILE_SITE_KEY=
+TURNSTILE_SECRET_KEY=
